@@ -46,3 +46,27 @@ def pyion_plotmap(data: dict, n: int = 128):
     ax.imshow(picture, cmap='gray')
     fig.set_size_inches(16, 16)
     pyplot.show()
+
+
+def pyion_debug_samples(m=1000, dtype=np.float32):
+    azm = np.zeros((1, m), dtype=dtype)
+    elv = np.linspace(0.0, np.pi * 0.5, m, dtype=dtype).reshape((1, m))
+    mx = np.concatenate((azm, elv))
+    t = np.linspace(0.0, 1.0, m, dtype=dtype)
+    freq = 20.0
+    amp = t * t + 0.5
+    ion = np.sin(2.0 * np.pi * t * freq) * amp
+    my = ion.reshape((1, m))
+
+    assert mx.shape == (2, m)
+    assert my.shape == (1, m)
+
+    return mx, my
+
+
+def pyion_shuffle_samples(mx, my):
+    m = mx.shape[1]
+    permutation = list(np.random.permutation(m))
+    shuffled_mx = mx[:, permutation]
+    shuffled_my = my[:, permutation]
+    return shuffled_mx, shuffled_my

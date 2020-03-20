@@ -1,6 +1,11 @@
 
 from pyion_utils import *
 from pyion_tf import *
+import os
+import tensorflow as tf
+
+os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
+
 
 data = pyion_load('/home/taran/work/pyion/txt/delta5.txt')
 m_train = 1000#data['azm'].shape[0] - 1000

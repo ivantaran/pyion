@@ -5,7 +5,7 @@ import numpy as np
 
 def pyion_load(file_name):
     data: np.array
-    data = np.loadtxt(file_name, delimiter='\t')
+    data = np.loadtxt(file_name, delimiter='\t', dtype=np.float32)
     print(data.shape)
     ion = data[:, 3]
     azm = data[:, 7]
@@ -13,8 +13,10 @@ def pyion_load(file_name):
     data = {'ion': ion, 'azm': azm, 'elv': elv}
     return data
 
+
 def polar2rect(r, phase):
     return r * np.exp(1.0j * phase)
+
 
 def pyion_plotmap(data: dict, n: int = 128):
     ion = data['ion']

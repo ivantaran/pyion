@@ -6,7 +6,7 @@ import numpy as np
 import tensorflow as tf
 from tensorflow.initializers import glorot_uniform
 
-# tf.compat.v1.enable_eager_execution()
+tf.compat.v1.enable_eager_execution()
 
 
 @tf.function
@@ -43,6 +43,7 @@ def initialize_parameters():
 
     return parameters
 
+
 @tf.function
 def forward_propagation(X, parameters):
     
@@ -53,11 +54,11 @@ def forward_propagation(X, parameters):
     W3 = parameters['W3']
     b3 = parameters['b3']
     
-    Z1 = tf.matmul(W1, X) + b1
+    Z1 = tf.add(tf.matmul(W1, X), b1)
     A1 = tf.nn.relu(Z1)
-    Z2 = tf.matmul(W2, A1) + b2
+    Z2 = tf.add(tf.matmul(W2, A1), b2)
     A2 = tf.nn.relu(Z2)
-    Z3 = tf.matmul(W3, A2) + b3
+    Z3 = tf.add(tf.matmul(W3, A2), b3)
 
     return Z3
 
@@ -88,19 +89,20 @@ def random_mini_batches(X, Y, mini_batch_size = 64, seed = 0):
     # Step 2: Partition (shuffled_X, shuffled_Y). Minus the end case.
     num_complete_minibatches = m // mini_batch_size # number of mini batches of size mini_batch_size in your partitionning
     for k in range(0, num_complete_minibatches):
-        mini_batch_X = shuffled_X[:, k * mini_batch_size : k * mini_batch_size + mini_batch_size]
-        mini_batch_Y = shuffled_Y[:, k * mini_batch_size : k * mini_batch_size + mini_batch_size]
+        mini_batch_X = shuffled_X[:, k * mini_batch_size: k * mini_batch_size + mini_batch_size]
+        mini_batch_Y = shuffled_Y[:, k * mini_batch_size: k * mini_batch_size + mini_batch_size]
         mini_batch = (mini_batch_X, mini_batch_Y)
         mini_batches.append(mini_batch)
     
     # Handling the end case (last mini-batch < mini_batch_size)
     if m % mini_batch_size != 0:
-        mini_batch_X = shuffled_X[:, num_complete_minibatches * mini_batch_size : m]
-        mini_batch_Y = shuffled_Y[:, num_complete_minibatches * mini_batch_size : m]
+        mini_batch_X = shuffled_X[:, num_complete_minibatches * mini_batch_size: m]
+        mini_batch_Y = shuffled_Y[:, num_complete_minibatches * mini_batch_size: m]
         mini_batch = (mini_batch_X, mini_batch_Y)
         mini_batches.append(mini_batch)
     
     return mini_batches
+
 
 # @tf.function
 def model(X_train, Y_train, X_test, Y_test, learning_rate=0.0001, num_epochs=1500, minibatch_size=32, print_cost=True):
@@ -110,30 +112,28 @@ def model(X_train, Y_train, X_test, Y_test, learning_rate=0.0001, num_epochs=150
     n_y = Y_train.shape[0]
     costs = []
     
-    # X, Y = create_placeholders(n_x, n_y)
     parameters = initialize_parameters()
-    # Z3 = forward_propagation(X, parameters)
-    # cost = compute_cost(Z3, Y)
-    # optimizer = tf.train.AdamOptimizer(learning_rate=learning_rate)#.minimize(cost)
-    optimizer = tf.keras.optimizers.Adam(learning_rate=learning_rate)#.minimize(cost)
+    optimizer = tf.keras.optimizers.Adam(learning_rate=learning_rate)
 
     for epoch in range(num_epochs):
         epoch_cost = 0.0
-        num_minibatches = int(m / minibatch_size)
+        num_minibatches = m // minibatch_size
         seed = seed + 1
         minibatches = random_mini_batches(X_train, Y_train, minibatch_size, seed)
 
         for minibatch in minibatches:
-            (minibatch_X, minibatch_Y) = minibatch
-            Z3 = forward_propagation(minibatch_X, parameters)
-            minibatch_cost = compute_cost(Z3, minibatch_Y)
-            minimize_op = optimizer.minimize(compute_cost, var_list=tf.trainable_variables)
+            with tf.GradientTape() as tape:
+                (minibatch_X, minibatch_Y) = minibatch
+                Z3 = forward_propagation(minibatch_X, parameters)
+                minibatch_cost = compute_cost(Z3, minibatch_Y)
+            gradients = tape.gradient(minibatch_cost, list(parameters.values()))
+            optimizer.apply_gradients(zip(gradients, list(parameters.values()))) #tf.trainable_variables()
             epoch_cost += minibatch_cost / minibatch_size
 
         if print_cost == True and epoch % 100 == 0:
             print ("Cost after epoch %i: %f" % (epoch, epoch_cost))
         if print_cost == True and epoch % 5 == 0:
-            costs.append(epoch_cost)
+            costs.append(epoch_cost.numpy())
 
     plt.plot(np.squeeze(costs))
     plt.ylabel('cost')
@@ -141,13 +141,13 @@ def model(X_train, Y_train, X_test, Y_test, learning_rate=0.0001, num_epochs=150
     plt.title("Learning rate =" + str(learning_rate))
     plt.show()
 
-    parameters = sess.run(parameters)
-    print ("Parameters have been trained!")
+    print("Parameters have been trained!")
 
     # correct_prediction = tf.equal(tf.argmax(Z3), tf.argmax(Y))
     # accuracy = tf.reduce_mean(tf.cast(correct_prediction, "float"))
-    accuracy = compute_cost(Z3, Y)
-    # print ("Train Accuracy:", accuracy.eval({X: X_train, Y: Y_train}))
-    print ("Test Accuracy:", accuracy.eval({X: X_test, Y: Y_test}))
+    Z3 = forward_propagation(X_train, parameters)
+    accuracy = compute_cost(Z3, Y_train)
+    print ("Train Accuracy:", accuracy.numpy())
+    # print ("Test Accuracy:", accuracy.eval({X: X_test, Y: Y_test}))
 
     return parameters

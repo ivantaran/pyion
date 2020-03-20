@@ -7,8 +7,8 @@ import tensorflow as tf
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
 
 
-data = pyion_load('/home/taran/work/pyion/txt/delta5.txt')
-m_train = 1000#data['azm'].shape[0] - 1000
+data = pyion_load('/home/taran/work/pyion/delta1.txt')
+m_train = data['azm'].shape[0] - 1000
 m_test = 100
 
 X_train = np.stack((data['azm'][0:m_train], data['elv'][0:m_train]))
@@ -21,7 +21,7 @@ print(X_train.shape)
 print(Y_train.shape)
 print(X_test.shape)
 print(Y_test.shape)
-parameters = model(X_train, Y_train, X_test, Y_test, num_epochs = 100, minibatch_size = 32)
+parameters = model(X_train, Y_train, X_test, Y_test, num_epochs=1500, minibatch_size=64)
 
 # pyion_plotmap(data, 1024)
 exit(0)

@@ -23,23 +23,30 @@ def create_placeholders(n_x, n_y):
 
 def initialize_parameters():
     n_x = 2
-    n1 = 4
-    n2 = 4
+    n1 = 16
+    n2 = 32
+    n3 = 16
     n_y = 1
     # tf.set_random_seed(1)
     W1 = tf.Variable(glorot_uniform()((n1, n_x)), name='W1')
     b1 = tf.Variable(glorot_uniform()((n1, 1)), name='b1', trainable=True)
     W2 = tf.Variable(glorot_uniform()((n2, n1)), name='W2', trainable=True)
     b2 = tf.Variable(glorot_uniform()((n2, 1)), name='b2', trainable=True)
-    W3 = tf.Variable(glorot_uniform()((n_y, n2)), name='W3', trainable=True)
-    b3 = tf.Variable(glorot_uniform()((n_y, 1)), name='b3', trainable=True)
+    W3 = tf.Variable(glorot_uniform()((n3, n2)), name='W3', trainable=True)
+    b3 = tf.Variable(glorot_uniform()((n3, 1)), name='b3', trainable=True)
+    W_out = tf.Variable(glorot_uniform()((n_y, n3)), name='W_out', trainable=True)
+    b_out = tf.Variable(glorot_uniform()((n_y, 1)), name='b_out', trainable=True)
 
-    parameters = {'W1': W1,
-                  'b1': b1,
-                  'W2': W2,
-                  'b2': b2,
-                  'W3': W3,
-                  'b3': b3}
+    parameters = {
+        'W1': W1,
+        'b1': b1,
+        'W2': W2,
+        'b2': b2,
+        'W3': W3,
+        'b3': b3,
+        'W_out': W_out,
+        'b_out': b_out,
+    }
 
     return parameters
 
@@ -53,17 +60,24 @@ def forward_propagation(X, parameters):
     b2 = parameters['b2']
     W3 = parameters['W3']
     b3 = parameters['b3']
+    W_out = parameters['W_out']
+    b_out = parameters['b_out']
     
     Z1 = tf.add(tf.matmul(W1, X), b1)
     A1 = tf.nn.relu(Z1)
+
     Z2 = tf.add(tf.matmul(W2, A1), b2)
     A2 = tf.nn.relu(Z2)
+
     Z3 = tf.add(tf.matmul(W3, A2), b3)
+    A3 = tf.sin(Z3)
 
-    return Z3
+    Z_out = tf.add(tf.matmul(W_out, A3), b_out)
+
+    return Z_out
 
 
-def random_mini_batches(X, Y, mini_batch_size = 64, seed = 0):
+def random_mini_batches(X, Y, mini_batch_size=64, seed=0):
     """
     Creates a list of random minibatches from (X, Y)
     

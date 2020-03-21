@@ -14,8 +14,10 @@ os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
 
 
 n = 1000
+m = 1000
 # mx, my = pyion_debug_samples(n, azm_range=(-0.25, 0.25))
-mx, my = pyion_debug_samples2(n)
+mx, my = pyion_debug_samples_m(m, azm_range=(-0.25, 0.25))
+# mx, my = pyion_debug_samples2(n)
 
 # mx, my = pyion_shuffle_samples(mx, my)
 # m_train = int(m * 0.8)
@@ -32,7 +34,8 @@ mx, my = pyion_debug_samples2(n)
 # pyplot.show()
 # exit(0)
 
-# data = pyion_load('/home/taran/work/pyion/txt/delta5.txt')
+# mx, my = pyion_load('/home/taran/work/pyion/txt/delta5.txt')
+
 # m_train = 1000 #data['azm'].shape[0] // 10
 # m_test = 1000
 #
@@ -48,7 +51,7 @@ mx, my = pyion_debug_samples2(n)
 # print(Y_test.shape)
 
 
-parameters = model(mx, my, mx, my, num_epochs=1500, minibatch_size=1)
+parameters = model(mx, my, mx, my, learning_rate=0.001, num_epochs=10000, minibatch_size=1000)
 
 # np.save('parameters.npy', parameters)
 
@@ -59,12 +62,16 @@ parameters = model(mx, my, mx, my, num_epochs=1500, minibatch_size=1)
 # print(mx.shape)
 
 ion = forward_propagation(mx, parameters)
-t = np.squeeze(mx[mx.shape[0] // 2:, :])
-pyplot.plot(t, np.squeeze(ion.numpy()), '.')
-pyplot.plot(t, np.squeeze(my) + 0.1, '.')
+t = np.reshape(mx, (2, -1))
+pyplot.plot(mx[1, :], np.squeeze(ion.numpy()), '.')
+pyplot.plot(mx[1, :], np.ravel(my) + 0.1, '.')
+# pyplot.plot(t[0, :], '.')
+# pyplot.plot(t[1, :], '.')
 pyplot.gcf().set_size_inches(16, 8)
 pyplot.grid(True)
 pyplot.show()
+
+
 # pyion_plotmap(data, 1024)
 exit(0)
 

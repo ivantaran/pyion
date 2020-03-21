@@ -21,36 +21,36 @@ def create_placeholders(n_x, n_y):
     return X, Y
 
 
-def initialize_parameters(nx, ny):
-    n1 = 8
-    W1 = tf.Variable(glorot_uniform()((n1, nx)), name='W1')
-    b1 = tf.Variable(glorot_uniform()((n1, 1)), name='b1')
-    W_out = tf.Variable(glorot_uniform()((ny, n1)), name='W_out')
-    b_out = tf.Variable(glorot_uniform()((ny, 1)), name='b_out')
+def initialize_parameters(nl=[2, 100, 1]):
 
-    parameters = {
-        'W1': W1,
-        'b1': b1,
-        'W_out': W_out,
-        'b_out': b_out,
-    }
+    parameters = {}
+
+    for l in range(1, len(nl)):
+        n_prev = nl[l - 1]
+        n = nl[l]
+        parameters['W%d' % l] = tf.Variable(glorot_uniform()((n, n_prev)))
+        parameters['b%d' % l] = tf.Variable(glorot_uniform()((n, 1)))
 
     return parameters
 
 
 @tf.function
 def forward_propagation(mx, parameters):
-    
-    W1 = parameters['W1']
-    b1 = parameters['b1']
-    W_out = parameters['W_out']
-    b_out = parameters['b_out']
-    
-    Z1 = tf.add(tf.matmul(W1, mx), b1)
-    A1 = tf.nn.relu(Z1)
-    Z_out = tf.add(tf.matmul(W_out, A1), b_out)
+    nl = len(parameters) // 2
+    A = mx
 
-    return Z_out
+    for l in range(1, nl):
+        W = parameters['W%d' % l]
+        b = parameters['b%d' % l]
+        Z = tf.add(tf.matmul(W, A), b)
+        A = tf.nn.relu(Z) if l == 1 else tf.nn.relu(Z)
+
+    W = parameters['W%d' % nl]
+    b = parameters['b%d' % nl]
+
+    Z = tf.add(tf.matmul(W, A), b)
+
+    return Z
 
 
 def random_mini_batches(X, Y, mini_batch_size=64, seed=0):
@@ -102,7 +102,7 @@ def model(X_train, Y_train, X_test, Y_test, learning_rate=0.0001, num_epochs=150
     n_y = Y_train.shape[0]
     costs = []
     
-    parameters = initialize_parameters(n_x, n_y)
+    parameters = initialize_parameters([n_x, 256, 256, 256, 256, n_y])
     optimizer = tf.keras.optimizers.Adam(learning_rate=learning_rate)
 
     for epoch in range(num_epochs):

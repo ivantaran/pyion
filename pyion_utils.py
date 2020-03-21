@@ -10,8 +10,13 @@ def pyion_load(file_name):
     ion = data[:, 3]
     azm = data[:, 7]
     elv = data[:, 8]
-    data = {'ion': ion, 'azm': azm, 'elv': elv}
-    return data
+    mx = np.concatenate((azm, elv))
+    mx = np.reshape(mx, (len(mx), 1))
+    my = np.reshape(ion, (len(ion), 1))
+    assert mx.shape[1] == 1
+    assert my.shape[1] == 1
+    # data = {'ion': ion, 'azm': azm, 'elv': elv}
+    return mx, my
 
 
 def polar2rect(r, phase):
@@ -68,6 +73,27 @@ def pyion_debug_samples(n=1000, azm_range=None, freq=20.0, dtype=np.float32):
 
     assert mx.shape == (nx, 1)
     assert my.shape == (ny, 1)
+
+    return mx, my
+
+
+def pyion_debug_samples_m(m=1000, azm_range=None, freq=20.0, dtype=np.float32):
+    elv = np.linspace(0.0, np.pi * 0.5, m, dtype=dtype).reshape((1, m))
+    if azm_range is None:
+        azm = np.zeros((1, m), dtype=dtype)
+    else:
+        left, right = azm_range
+        azm = np.linspace(2.0 * np.pi * left, 2.0 * np.pi * right, m, dtype=dtype).reshape((1, m))
+
+    mx = np.concatenate((azm, elv))
+
+    t = np.linspace(0.0, 1.0, m, dtype=dtype)
+    amp = t * t + 0.5
+    ion = np.sin(2.0 * np.pi * t * freq) * amp
+    my = ion.reshape((1, m))
+
+    assert mx.shape == (2, m)
+    assert my.shape == (1, m)
 
     return mx, my
 

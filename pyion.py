@@ -4,12 +4,19 @@ from pyion_utils import *
 from pyion_tf import *
 import os
 import tensorflow as tf
+
 tf.compat.v1.enable_eager_execution()
 
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
 
-nx = 1000
-mx, my = pyion_debug_samples(nx)
+# parameters = np.load('parameters.npy', allow_pickle=True)
+# parameters = parameters.tolist()
+
+
+n = 1000
+# mx, my = pyion_debug_samples(n, azm_range=(-0.25, 0.25))
+mx, my = pyion_debug_samples2(n)
+
 # mx, my = pyion_shuffle_samples(mx, my)
 # m_train = int(m * 0.8)
 # m_test = m - m_train
@@ -43,6 +50,8 @@ mx, my = pyion_debug_samples(nx)
 
 parameters = model(mx, my, mx, my, num_epochs=1500, minibatch_size=1)
 
+# np.save('parameters.npy', parameters)
+
 # m = 1000
 # azm = np.zeros((1, m), dtype=np.float32) + 2.7
 # elv = np.linspace(0.0, np.pi * 0.5, m, dtype=np.float32).reshape((1, m))
@@ -50,9 +59,9 @@ parameters = model(mx, my, mx, my, num_epochs=1500, minibatch_size=1)
 # print(mx.shape)
 
 ion = forward_propagation(mx, parameters)
-t = np.squeeze(mx)
+t = np.squeeze(mx[mx.shape[0] // 2:, :])
 pyplot.plot(t, np.squeeze(ion.numpy()), '.')
-pyplot.plot(t, np.squeeze(my) + 0.5, '.')
+pyplot.plot(t, np.squeeze(my) + 0.1, '.')
 pyplot.gcf().set_size_inches(16, 8)
 pyplot.grid(True)
 pyplot.show()

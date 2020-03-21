@@ -21,14 +21,12 @@ def create_placeholders(n_x, n_y):
     return X, Y
 
 
-def initialize_parameters():
-    n_x = 1000
-    n1 = 16
-    n_y = 1000
-    W1 = tf.Variable(glorot_uniform()((n1, n_x)), name='W1')
+def initialize_parameters(nx, ny):
+    n1 = 8
+    W1 = tf.Variable(glorot_uniform()((n1, nx)), name='W1')
     b1 = tf.Variable(glorot_uniform()((n1, 1)), name='b1')
-    W_out = tf.Variable(glorot_uniform()((n_y, n1)), name='W_out')
-    b_out = tf.Variable(glorot_uniform()((n_y, 1)), name='b_out')
+    W_out = tf.Variable(glorot_uniform()((ny, n1)), name='W_out')
+    b_out = tf.Variable(glorot_uniform()((ny, 1)), name='b_out')
 
     parameters = {
         'W1': W1,
@@ -49,7 +47,7 @@ def forward_propagation(mx, parameters):
     b_out = parameters['b_out']
     
     Z1 = tf.add(tf.matmul(W1, mx), b1)
-    A1 = tf.sin(Z1)
+    A1 = tf.nn.relu(Z1)
     Z_out = tf.add(tf.matmul(W_out, A1), b_out)
 
     return Z_out
@@ -104,7 +102,7 @@ def model(X_train, Y_train, X_test, Y_test, learning_rate=0.0001, num_epochs=150
     n_y = Y_train.shape[0]
     costs = []
     
-    parameters = initialize_parameters()
+    parameters = initialize_parameters(n_x, n_y)
     optimizer = tf.keras.optimizers.Adam(learning_rate=learning_rate)
 
     for epoch in range(num_epochs):
@@ -122,9 +120,9 @@ def model(X_train, Y_train, X_test, Y_test, learning_rate=0.0001, num_epochs=150
             optimizer.apply_gradients(zip(gradients, list(parameters.values()))) #tf.trainable_variables()
             epoch_cost += minibatch_cost / minibatch_size
 
-        if print_cost == True and epoch % 100 == 0:
+        if print_cost is True and epoch % 100 == 0:
             print ("Cost after epoch %i: %f" % (epoch, epoch_cost))
-        if print_cost == True and epoch % 5 == 0:
+        if print_cost is True and epoch % 5 == 0:
             costs.append(epoch_cost.numpy())
 
     plt.plot(np.squeeze(costs))

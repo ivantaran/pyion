@@ -48,18 +48,38 @@ def pyion_plotmap(data: dict, n: int = 128):
     pyplot.show()
 
 
-def pyion_debug_samples(nx=1000, dtype=np.float32):
-    azm = np.zeros((nx, 1), dtype=dtype)
-    elv = np.linspace(0.0, np.pi * 0.5, nx, dtype=dtype).reshape((nx, 1))
-    mx = elv  # np.concatenate((azm, elv))
-    t = np.linspace(0.0, 1.0, nx, dtype=dtype)
-    freq = 20.0
+def pyion_debug_samples(n=1000, azm_range=None, freq=20.0, dtype=np.float32):
+    ny = n
+    nx = n * 2
+
+    elv = np.linspace(0.0, np.pi * 0.5, n, dtype=dtype).reshape((n, 1))
+    if azm_range is None:
+        azm = np.zeros((n, 1), dtype=dtype)
+    else:
+        left, right = azm_range
+        azm = np.linspace(2.0 * np.pi * left, 2.0 * np.pi * right, n, dtype=dtype).reshape((n, 1))
+
+    mx = np.concatenate((azm, elv))
+
+    t = np.linspace(0.0, 1.0, ny, dtype=dtype)
     amp = t * t + 0.5
     ion = np.sin(2.0 * np.pi * t * freq) * amp
-    my = ion.reshape((nx, 1))
+    my = ion.reshape((ny, 1))
 
     assert mx.shape == (nx, 1)
-    assert my.shape == (nx, 1)
+    assert my.shape == (ny, 1)
+
+    return mx, my
+
+
+def pyion_debug_samples2(n=1000, dtype=np.float32):
+    mx1, my1 = pyion_debug_samples(n, azm_range=(-0.2, 0.2), freq=20, dtype=dtype)
+    mx2, my2 = pyion_debug_samples(n, azm_range=(0.4, 0.6), freq=10, dtype=dtype)
+    mx = np.concatenate((mx1, mx2))
+    my = np.concatenate((my1, my2))
+
+    assert mx.shape == (n * 4, 1)
+    assert my.shape == (n * 2, 1)
 
     return mx, my
 
@@ -70,3 +90,21 @@ def pyion_shuffle_samples(mx, my):
     shuffled_mx = mx[:, permutation]
     shuffled_my = my[:, permutation]
     return shuffled_mx, shuffled_my
+
+
+def pyion_load_parameters(file_name):
+    parameters = np.load(file_name)
+    return parameters
+
+
+def pyion_square_to_azmelv(n=128, dtype=np.float32):
+    t = np.arange(0, n, dtype=dtype)
+    x, y = np.meshgrid(t, t)
+    x = np.ravel(x) - n * 0.5
+    y = np.ravel(y) - n * 0.5
+    s = np.stack((x, y))
+    elv = np.linalg.norm(s, axis=0)
+    elv = (1.0 - elv / np.max(elv)) * np.pi * 0.5
+    azm = np.arctan2(x, y)
+    mx = np.reshape((azm, elv), (n * n * 2, 1))
+    return mx

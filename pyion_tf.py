@@ -22,28 +22,17 @@ def create_placeholders(n_x, n_y):
 
 
 def initialize_parameters():
-    n_x = 2
+    n_x = 1000
     n1 = 16
-    n2 = 32
-    n3 = 16
-    n_y = 1
-    # tf.set_random_seed(1)
+    n_y = 1000
     W1 = tf.Variable(glorot_uniform()((n1, n_x)), name='W1')
-    b1 = tf.Variable(glorot_uniform()((n1, 1)), name='b1', trainable=True)
-    W2 = tf.Variable(glorot_uniform()((n2, n1)), name='W2', trainable=True)
-    b2 = tf.Variable(glorot_uniform()((n2, 1)), name='b2', trainable=True)
-    W3 = tf.Variable(glorot_uniform()((n3, n2)), name='W3', trainable=True)
-    b3 = tf.Variable(glorot_uniform()((n3, 1)), name='b3', trainable=True)
-    W_out = tf.Variable(glorot_uniform()((n_y, n3)), name='W_out', trainable=True)
-    b_out = tf.Variable(glorot_uniform()((n_y, 1)), name='b_out', trainable=True)
+    b1 = tf.Variable(glorot_uniform()((n1, 1)), name='b1')
+    W_out = tf.Variable(glorot_uniform()((n_y, n1)), name='W_out')
+    b_out = tf.Variable(glorot_uniform()((n_y, 1)), name='b_out')
 
     parameters = {
         'W1': W1,
         'b1': b1,
-        'W2': W2,
-        'b2': b2,
-        'W3': W3,
-        'b3': b3,
         'W_out': W_out,
         'b_out': b_out,
     }
@@ -52,27 +41,16 @@ def initialize_parameters():
 
 
 @tf.function
-def forward_propagation(X, parameters):
+def forward_propagation(mx, parameters):
     
     W1 = parameters['W1']
     b1 = parameters['b1']
-    W2 = parameters['W2']
-    b2 = parameters['b2']
-    W3 = parameters['W3']
-    b3 = parameters['b3']
     W_out = parameters['W_out']
     b_out = parameters['b_out']
     
-    Z1 = tf.add(tf.matmul(W1, X), b1)
-    A1 = tf.nn.relu(Z1)
-
-    Z2 = tf.add(tf.matmul(W2, A1), b2)
-    A2 = tf.nn.relu(Z2)
-
-    Z3 = tf.add(tf.matmul(W3, A2), b3)
-    A3 = tf.sin(Z3)
-
-    Z_out = tf.add(tf.matmul(W_out, A3), b_out)
+    Z1 = tf.add(tf.matmul(W1, mx), b1)
+    A1 = tf.sin(Z1)
+    Z_out = tf.add(tf.matmul(W_out, A1), b_out)
 
     return Z_out
 

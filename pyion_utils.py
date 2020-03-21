@@ -48,18 +48,18 @@ def pyion_plotmap(data: dict, n: int = 128):
     pyplot.show()
 
 
-def pyion_debug_samples(m=1000, dtype=np.float32):
-    azm = np.zeros((1, m), dtype=dtype)
-    elv = np.linspace(0.0, np.pi * 0.5, m, dtype=dtype).reshape((1, m))
-    mx = np.concatenate((azm, elv))
-    t = np.linspace(0.0, 1.0, m, dtype=dtype)
+def pyion_debug_samples(nx=1000, dtype=np.float32):
+    azm = np.zeros((nx, 1), dtype=dtype)
+    elv = np.linspace(0.0, np.pi * 0.5, nx, dtype=dtype).reshape((nx, 1))
+    mx = elv  # np.concatenate((azm, elv))
+    t = np.linspace(0.0, 1.0, nx, dtype=dtype)
     freq = 20.0
     amp = t * t + 0.5
     ion = np.sin(2.0 * np.pi * t * freq) * amp
-    my = ion.reshape((1, m))
+    my = ion.reshape((nx, 1))
 
-    assert mx.shape == (2, m)
-    assert my.shape == (1, m)
+    assert mx.shape == (nx, 1)
+    assert my.shape == (nx, 1)
 
     return mx, my
 

@@ -9,15 +9,13 @@ tf.compat.v1.enable_eager_execution()
 
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
 
-# parameters = np.load('parameters.npy', allow_pickle=True)
-# parameters = parameters.tolist()
-
 
 n = 1000
 m = 1000
 # mx, my = pyion_debug_samples(n, azm_range=(-0.25, 0.25))
-mx, my = pyion_debug_samples_m(m, azm_range=(-0.25, 0.25))
+# mx, my = pyion_debug_samples_m(m, azm_range=(-0.25, 0.25))
 # mx, my = pyion_debug_samples2(n)
+# mx, my = pyion_debug_samples2_m(m)
 
 # mx, my = pyion_shuffle_samples(mx, my)
 # m_train = int(m * 0.8)
@@ -34,7 +32,7 @@ mx, my = pyion_debug_samples_m(m, azm_range=(-0.25, 0.25))
 # pyplot.show()
 # exit(0)
 
-# mx, my = pyion_load('/home/taran/work/pyion/txt/delta5.txt')
+mx, my = pyion_load('/home/taran/work/pyion/delta.txt')
 
 # m_train = 1000 #data['azm'].shape[0] // 10
 # m_test = 1000
@@ -50,10 +48,11 @@ mx, my = pyion_debug_samples_m(m, azm_range=(-0.25, 0.25))
 # print(X_test.shape)
 # print(Y_test.shape)
 
+preload_weights = True
+parameters = model(mx, my, mx, my, learning_rate=0.00001, num_epochs=100, minibatch_size=my.shape[1] // 2,
+                   preload_weights=preload_weights)
 
-parameters = model(mx, my, mx, my, learning_rate=0.001, num_epochs=10000, minibatch_size=1000)
-
-# np.save('parameters.npy', parameters)
+np.save('parameters1.npy', parameters)
 
 # m = 1000
 # azm = np.zeros((1, m), dtype=np.float32) + 2.7

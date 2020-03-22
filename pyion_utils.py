@@ -11,11 +11,10 @@ def pyion_load(file_name):
     azm = data[:, 7]
     elv = data[:, 8]
     mx = np.concatenate((azm, elv))
-    mx = np.reshape(mx, (len(mx), 1))
-    my = np.reshape(ion, (len(ion), 1))
-    assert mx.shape[1] == 1
-    assert my.shape[1] == 1
-    # data = {'ion': ion, 'azm': azm, 'elv': elv}
+    mx = np.reshape(mx, (2, -1))
+    my = np.reshape(ion, (1, -1))
+    assert mx.shape[0] == 2
+    assert my.shape[0] == 1
     return mx, my
 
 
@@ -23,7 +22,7 @@ def polar2rect(r, phase):
     return r * np.exp(1.0j * phase)
 
 
-def pyion_plotmap(data: dict, n: int = 128):
+def pyion_plotmap(data: dict, n: int = 128, cmap='bone'):
     ion = data['ion']
     azm = data['azm']
     elv = data['elv']
@@ -48,7 +47,7 @@ def pyion_plotmap(data: dict, n: int = 128):
     fig, ax = pyplot.subplots(1)
     ax: pyplot.Axes
     fig: pyplot.Figure
-    ax.imshow(picture, cmap='gray')
+    ax.imshow(picture, cmap=cmap)
     fig.set_size_inches(16, 16)
     pyplot.show()
 
@@ -110,6 +109,18 @@ def pyion_debug_samples2(n=1000, dtype=np.float32):
     return mx, my
 
 
+def pyion_debug_samples2_m(m=1000, dtype=np.float32):
+    mx1, my1 = pyion_debug_samples_m(m, azm_range=(-0.2, 0.2), freq=20, dtype=dtype)
+    mx2, my2 = pyion_debug_samples_m(m, azm_range=(0.4, 0.6), freq=10, dtype=dtype)
+    mx = np.concatenate((mx1, mx2), axis=1)
+    my = np.concatenate((my1, my2), axis=1)
+
+    assert mx.shape == (2, m * 2)
+    assert my.shape == (1, m * 2)
+
+    return mx, my
+
+
 def pyion_shuffle_samples(mx, my):
     m = mx.shape[1]
     permutation = list(np.random.permutation(m))
@@ -133,4 +144,14 @@ def pyion_square_to_azmelv(n=128, dtype=np.float32):
     elv = (1.0 - elv / np.max(elv)) * np.pi * 0.5
     azm = np.arctan2(x, y)
     mx = np.reshape((azm, elv), (n * n * 2, 1))
+    return mx
+
+
+def pyion_azmelv_mesh(n_azm=128, n_elv=64, dtype=np.float32):
+    azm = np.linspace(0.0, 2.0 * np.pi, n_azm, dtype=dtype)
+    elv = np.linspace(np.pi * 0.07, 0.5 * np.pi, n_elv, dtype=dtype)
+    azm, elv = np.meshgrid(azm, elv)
+    azm = np.reshape(azm, (1, -1))
+    elv = np.reshape(elv, (1, -1))
+    mx = np.concatenate((azm, elv))
     return mx

@@ -15,21 +15,18 @@ def compute_cost(Y_pred, Y):
     return cost
 
 
-def create_placeholders(n_x, n_y):
-    X = tf.placeholder(tf.float32, shape=(n_x, None), name='X')
-    Y = tf.placeholder(tf.float32, shape=(n_y, None), name='Y')
-    return X, Y
+def initialize_parameters(nl=[2, 100, 1], preload_weights=False):
+    if preload_weights:
+        parameters = np.load('parameters.npy', allow_pickle=True)
+        parameters = parameters.tolist()
+    else:
+        parameters = {}
 
-
-def initialize_parameters(nl=[2, 100, 1]):
-
-    parameters = {}
-
-    for l in range(1, len(nl)):
-        n_prev = nl[l - 1]
-        n = nl[l]
-        parameters['W%d' % l] = tf.Variable(glorot_uniform()((n, n_prev)))
-        parameters['b%d' % l] = tf.Variable(glorot_uniform()((n, 1)))
+        for l in range(1, len(nl)):
+            n_prev = nl[l - 1]
+            n = nl[l]
+            parameters['W%d' % l] = tf.Variable(glorot_uniform()((n, n_prev)))
+            parameters['b%d' % l] = tf.Variable(glorot_uniform()((n, 1)))
 
     return parameters
 
@@ -95,14 +92,15 @@ def random_mini_batches(X, Y, mini_batch_size=64, seed=0):
 
 
 # @tf.function
-def model(X_train, Y_train, X_test, Y_test, learning_rate=0.0001, num_epochs=1500, minibatch_size=32, print_cost=True):
+def model(X_train, Y_train, X_test, Y_test, learning_rate=0.000003, num_epochs=1500, minibatch_size=32, print_cost=True,
+          preload_weights=False):
     
     seed = 3
     (n_x, m) = X_train.shape
     n_y = Y_train.shape[0]
     costs = []
     
-    parameters = initialize_parameters([n_x, 256, 256, 256, 256, n_y])
+    parameters = initialize_parameters([n_x, 1024, 256, 256, 256, 256, n_y], preload_weights=preload_weights)
     optimizer = tf.keras.optimizers.Adam(learning_rate=learning_rate)
 
     for epoch in range(num_epochs):
@@ -118,14 +116,15 @@ def model(X_train, Y_train, X_test, Y_test, learning_rate=0.0001, num_epochs=150
                 minibatch_cost = compute_cost(Z3, minibatch_Y)
             gradients = tape.gradient(minibatch_cost, list(parameters.values()))
             optimizer.apply_gradients(zip(gradients, list(parameters.values()))) #tf.trainable_variables()
-            epoch_cost += minibatch_cost / minibatch_size
+            epoch_cost += minibatch_cost
 
-        if print_cost is True and epoch % 100 == 0:
-            print ("Cost after epoch %i: %f" % (epoch, epoch_cost))
+        if print_cost is True and epoch % 1 == 0:
+            print("Cost after epoch %i: %0.3e" % (epoch, epoch_cost))
+            np.save('parameters1.npy', parameters)
         if print_cost is True and epoch % 5 == 0:
             costs.append(epoch_cost.numpy())
 
-    plt.plot(np.squeeze(costs))
+    plt.plot(10.0 * np.log10(np.squeeze(costs)))
     plt.ylabel('cost')
     plt.xlabel('iterations (per fives)')
     plt.title("Learning rate =" + str(learning_rate))
